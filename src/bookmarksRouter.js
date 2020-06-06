@@ -18,20 +18,20 @@ bookmarksRouter.get('/:id',(req,res)=>{
 });
 
 bookmarksRouter.post('/',(req,res)=>{
-  const {title,url,desc,rating}=req.body;
+  const {title,url,description,rating}=req.body;
   if(!title){
     return res.status(400).send('Title required');
   }
   if(!url){
     return res.status(400).send('Url required');
   }
-  if(!desc){
-    return res.status(400).send('Description (desc) required');
+  if(!description){
+    return res.status(400).send('Description required');
   }
   if(!rating){
     return res.status(400).send('Rating required');
   }
-  let newBookmark = {id:uuid(),title,url,desc,rating:Number(rating)};
+  let newBookmark = {id:uuid(),title,url,description,rating:Number(rating)};
   Store.push(newBookmark);
   res.status(201).send('Post performed');
 });
