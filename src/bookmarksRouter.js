@@ -26,7 +26,7 @@ bookmarksRouter.post('/',(req,res)=>{
     return res.status(400).send('Url required');
   }
   if(!desc){
-    return res.status(400).send('Description required');
+    return res.status(400).send('Description (desc) required');
   }
   if(!rating){
     return res.status(400).send('Rating required');
