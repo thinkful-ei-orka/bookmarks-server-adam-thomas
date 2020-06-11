@@ -1,26 +1,19 @@
-# Express Boilerplate!
+Make two new databases, bookmarks and bookmarks-test.-Done
 
-This is a boilerplate project used for starting new projects!
+Write the first migration inside the bookmarks-server project that creates the table for bookmarks. Then use the migration to create the tables in both new databases.
 
-## Set up
+The table should contain fields for id, title, url, description and rating. The description is the only optional field - Done
 
-Complete the following steps to start a new project (NEW-PROJECT-NAME):
+Choose suitable data types for each column - Done
 
-1. Clone this repository to your local machine `git clone BOILERPLATE-URL NEW-PROJECTS-NAME`
-2. `cd` into the cloned repository
-3. Make a fresh start of the git history for this project with `rm -rf .git && git init`
-4. Install the node dependencies `npm install`
-5. Move the example Environment file to `.env` that will be ignored by git and read by the express server `mv example.env .env`
-6. Edit the contents of the `package.json` to use NEW-PROJECT-NAME instead of `"name": "express-boilerplate",`
+Refactor the GET /bookmarks endpoint and tests. The endpoint should use the database tables.
 
-## Scripts
+You'll need to wire up Knex into your server and tests.
 
-Start the application `npm start`
+Write a BookmarksService object in the bookmarks-server project that will support CRUD for bookmarks using Knex.
 
-Start nodemon for the application `npm run dev`
+You should use fixtures in your tests for the GET /bookmarks and GET /bookmarks/:bookmark_id
 
-Run the tests `npm test`
+Write tests for how each endpoint behaves when the database is empty
 
-## Deploying
-
-When your new project is ready for deployment, add a new Heroku application with `heroku create`. This will make a new git remote called "heroku" and you can then `npm run deploy` which will push to this remote's master branch.
+Write seeding scripts to insert dummy bookmarks into the database tables so you can check that the refactored endpoints work when your server is running locally.
