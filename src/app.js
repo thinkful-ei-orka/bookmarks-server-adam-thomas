@@ -18,7 +18,7 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-const apiToken = process.env.API_TOKEN;
+/*const apiToken = process.env.API_TOKEN;
 function handleBearerToken(req, res, next) {
   const authToken = req.get('Authorization') || ' ';
   if (!authToken.toLowerCase().startsWith('bearer ')) {
@@ -31,7 +31,7 @@ function handleBearerToken(req, res, next) {
 }
 
 app.use(handleBearerToken);
-
+*/
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),

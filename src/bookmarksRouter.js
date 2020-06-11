@@ -2,19 +2,35 @@ const express = require('express');
 const morgan = require('morgan');
 const bookmarksRouter = express.Router();
 const {v4:uuid}=require('uuid');
+const BookmarksService = require('./bookmarks-service');
 const Store = require('./Store.js');
 
 
-bookmarksRouter.get('/',(req,res)=>{
-  res.json(Store);
+bookmarksRouter.get('/',(req,res,next)=>{
+  const knexInstance=req.app.get('db');
+  BookmarksService.getAllBookmarks(knexInstance)
+    .then(bookmark=>{res.json(bookmark);})
+    .catch(next);
 });
 
-bookmarksRouter.get('/:id',(req,res)=>{
-  const bookmark = Store.find(book=>book.id===req.params.id);
-  if(!bookmark){
-    res.status(400).send('Bookmark does not exist');
-  }
-  res.json(bookmark);
+bookmarksRouter.get('/:id',(req,res,next)=>{
+  const knexInstance=req.app.get('db');
+  BookmarksService.getById(knexInstance,req.params.id)
+    .then(bookmark=>{
+      if(!bookmark){
+        return res.status(404).json({
+          error: {message:'Bookmark doesn\'t exist'}
+        });
+      }
+      res.json({
+        id:bookmark.id,
+        title:bookmark.title,
+        url:bookmark.url,
+        description:bookmark.description||'',
+        rating:bookmark.rating
+      });
+    })
+    .catch(next);
 });
 
 bookmarksRouter.post('/',(req,res)=>{
