@@ -4,12 +4,13 @@ const bookmarksRouter = express.Router();
 const {v4:uuid}=require('uuid');
 const BookmarksService = require('./bookmarks-service');
 const Store = require('./Store.js');
+const xss = require('xss');
 
 
 bookmarksRouter.get('/',(req,res,next)=>{
   const knexInstance=req.app.get('db');
   BookmarksService.getAllBookmarks(knexInstance)
-    .then(bookmark=>{res.json(bookmark);})
+    .then(bookmarks=>{res.json(bookmarks);})
     .catch(next);
 });
 
@@ -33,23 +34,19 @@ bookmarksRouter.get('/:id',(req,res,next)=>{
     .catch(next);
 });
 
-bookmarksRouter.post('/',(req,res)=>{
+bookmarksRouter.post('/',(req,res,next)=>{
+  const knexInstance=req.app.get('db')
   const {title,url,description,rating}=req.body;
-  if(!title){
-    return res.status(400).send('Title required');
+  const newBookmark = {title,url,description,rating};
+  for (const [key,value] of Object.entries(newBookmark)){
+    if(value==null){
+      return res.status(400).json({error:{message:`${key} required`}});
+    }
   }
-  if(!url){
-    return res.status(400).send('Url required');
-  }
-  if(!description){
-    return res.status(400).send('Description required');
-  }
-  if(!rating){
-    return res.status(400).send('Rating required');
-  }
-  let newBookmark = {id:uuid(),title,url,description,rating:Number(rating)};
-  Store.push(newBookmark);
-  res.status(201).send('Post performed');
+  newBookmark.rating=Number(newBookmark.rating);
+  BookmarksService.insertBookmark(knexInstance,newBookmark)
+    .then(bookmark=>res.status(201).location(`/bookmarks/${bookmark.id}`).json(bookmark))
+    .catch(next);
 });
 
 bookmarksRouter.delete('/:id',(req,res)=>{

@@ -64,4 +64,47 @@ describe('Bookmarks Endpoints', function () {
     });
   });
 
+  describe('POST /bookmarks', () => {
+    it('appends a new bookmark to the database and responds with 201', function () {
+      const newBookmark = {
+        title: 'New Bookmark',
+        url: 'http://www.google.com',
+        description: 'description',
+        rating: 3
+      };
+      return supertest(app)
+        .post('/bookmarks')
+        .send(newBookmark)
+        .expect(201)
+        .expect(res => {
+          expect(res.body.title).to.eql(newBookmark.title);
+          expect(res.body.url).to.eql(newBookmark.url);
+          expect(res.body.description).to.eql(newBookmark.description);
+          expect(res.body.rating).to.eql(newBookmark.rating);
+          expect(res.body).to.have.property('id');
+          expect(res.headers.location).to.eql(`/bookmarks/${res.body.id}`);
+        })
+        .then(postRes =>
+          supertest(app)
+            .get(`/bookmarks/${postRes.body.id}`)
+            .expect(postRes.body)
+        );
+    });
+    const requiredFields = ['title', 'url', 'description', 'rating'];
+    requiredFields.forEach(field => {
+      const newBookmark = {
+        title: 'new bookmark!!',
+        url: 'http://www.google.com',
+        description: 'woohoo!',
+        rating: 3
+      };
+      it('responds with 400 and an error message when a field is missing', () => {
+        delete newBookmark[field];
+        return supertest(app)
+          .post('/bookmarks')
+          .send(newBookmark)
+          .expect(400,{error:{message:`${field} required`}});
+      });
+    });
+  });
 });
