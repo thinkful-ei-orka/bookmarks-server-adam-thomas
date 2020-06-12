@@ -103,7 +103,36 @@ describe('Bookmarks Endpoints', function () {
         return supertest(app)
           .post('/bookmarks')
           .send(newBookmark)
-          .expect(400,{error:{message:`${field} required`}});
+          .expect(400, { error: { message: `${field} required` } });
+      });
+    });
+  });
+  describe('DELETE /bookmarks/:id', () => {
+    const removeId = 2;
+    context('Given there are no articles in the database', () => {
+      it("responds with 404 and bookmark doesn't exist", () => {
+        return supertest(app)
+          .delete(`/bookmarks/${removeId}`)
+          .expect(404, { error: { message: 'Bookmark doesn\'t exist' } });
+      });
+    });
+    context('Given there are articles in the database', () => {
+      const testBookmarks = makeBookmarksArray();
+      beforeEach('insert articles', () => {
+        return db
+          .into('bookmarks')
+          .insert(testBookmarks);
+      });
+      it('responds with 204 and removes the article', () => {
+        const expected = testBookmarks.filter(x => x.id !== removeId);
+        return supertest(app)
+          .delete(`/bookmarks/${removeId}`)
+          .expect(204)
+          .then(res => 
+            supertest(app)
+              .get('/bookmarks')
+              .expect(expected)
+          );
       });
     });
   });
