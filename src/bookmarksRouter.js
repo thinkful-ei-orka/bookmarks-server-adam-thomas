@@ -17,7 +17,7 @@ bookmarksRouter.get('/:id', (req, res, next) => {
     .then(bookmark => {
       if (!bookmark) {
         return res.status(404).json({
-          error: { message: 'Bookmark doesn\'t exist' }
+          error: { message: "Bookmark doesn't exist" }
         });
       }
       res.json({
@@ -57,11 +57,27 @@ bookmarksRouter.delete('/:id', (req, res, next) => {
     .then(bookmark => {
       if (!bookmark) {
         return res.status(404).json({
-          error: { message: 'Bookmark doesn\'t exist' }
+          error: { message: "Bookmark doesn't exist" }
         });
       }
       BookmarksService.deleteBookmark(req.app.get('db'), bookmark.id)
         .then(() => {
+          res.status(204).end();
+        })
+        .catch(next);
+    });
+});
+
+bookmarksRouter.patch('/:id',(req,res,next)=>{
+  BookmarksService.getById(req.app.get('db'),req.params.id)
+    .then(bookmark =>{
+      if(!bookmark){
+        return res.status(404).json({
+          error:{message:"Bookmark doesn't exist"}
+        });
+      }
+      BookmarksService.updateBookmark(req.app.get('db'),bookmark.id,req.body)
+        .then(()=>{
           res.status(204).end();
         })
         .catch(next);

@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const knex = require('knex');
 const app = require('../src/app');
 const { makeBookmarksArray } = require('./bookmarks.fixtures');
+const supertest = require('supertest');
 
 describe('Bookmarks Endpoints', function () {
   let db;
@@ -107,23 +108,25 @@ describe('Bookmarks Endpoints', function () {
       });
     });
   });
+
   describe('DELETE /bookmarks/:id', () => {
     const removeId = 2;
     context('Given there are no articles in the database', () => {
       it("responds with 404 and bookmark doesn't exist", () => {
         return supertest(app)
           .delete(`/bookmarks/${removeId}`)
-          .expect(404, { error: { message: 'Bookmark doesn\'t exist' } });
+          .expect(404, { error: { message: "Bookmark doesn't exist" } 
+          });
       });
     });
-    context('Given there are articles in the database', () => {
+    context('Given there are bookmarks in the database', () => {
       const testBookmarks = makeBookmarksArray();
-      beforeEach('insert articles', () => {
+      beforeEach('insert bookmarks', () => {
         return db
           .into('bookmarks')
           .insert(testBookmarks);
       });
-      it('responds with 204 and removes the article', () => {
+      it('responds with 204 and removes the bookmark', () => {
         const expected = testBookmarks.filter(x => x.id !== removeId);
         return supertest(app)
           .delete(`/bookmarks/${removeId}`)
@@ -136,4 +139,104 @@ describe('Bookmarks Endpoints', function () {
       });
     });
   });
+
+  describe.only('PATCH /bookmarks/:id',()=>{
+    const editId = 2;
+    const updateBookmark = {
+      title:'Updated',
+      url:'http://www.Updated.com',
+      description:'Updated',
+      rating:7
+    };
+    context('given there are no bookmarks in the database',()=>{
+      it("responds with 404 and bookmark doesn't exist", () => {
+        return supertest(app)
+          .patch(`/bookmarks/${editId}`)
+          .send(updateBookmark)
+          .expect(404, { error: { message: "Bookmark doesn't exist"} 
+          });
+      });
+    });
+    const fields = Object.keys(updateBookmark);
+    fields.forEach(field=>{
+      let original=(supertest(app)
+        .get('bookmarks/${editId}'))
+      console.log(original);
+    return supertest(app)
+      .patch(`/bookmarks/${editId}`)
+      .send({field:updateBookmark[field]})
+      .expect(204)
+      .then(res=>
+        supertest(app)
+          .get(`/bookmarks/${editId}`)
+          .then(bookmark=>
+            expect(bookmark).to.eql(edittedOriginal))  
+      )
+    })
+    context('given there are bookmarks in the database',()=>{
+      const testBookmarks = makeBookmarksArray();
+      beforeEach('insert bookmarks', () => {
+        return db
+          .into('bookmarks')
+          .insert(testBookmarks);
+      });
+      it('responds with 204 and edits the bookmark in database',()=>{
+        return supertest(app)
+          .patch(`/bookmarks/${editId}`)
+          .send(updateBookmark)
+          .expect(204)
+          .then(res=>
+            supertest(app)
+              .get(`/bookmarks/${editId}`)
+              .then(bookmark=>
+                
+              )
+          );
+      });
+    });
+  });
 });
+
+/*describe('POST /bookmarks', () => {
+    it('appends a new bookmark to the database and responds with 201', function () {
+      const newBookmark = {
+        title: 'New Bookmark',
+        url: 'http://www.google.com',
+        description: 'description',
+        rating: 3
+      };
+      return supertest(app)
+        .post('/bookmarks')
+        .send(newBookmark)
+        .expect(201)
+        .expect(res => {
+          expect(res.body.title).to.eql(newBookmark.title);
+          expect(res.body.url).to.eql(newBookmark.url);
+          expect(res.body.description).to.eql(newBookmark.description);
+          expect(res.body.rating).to.eql(newBookmark.rating);
+          expect(res.body).to.have.property('id');
+          expect(res.headers.location).to.eql(`/bookmarks/${res.body.id}`);
+        })
+        .then(postRes =>
+          supertest(app)
+            .get(`/bookmarks/${postRes.body.id}`)
+            .expect(postRes.body)
+        );
+    });
+    const requiredFields = ['title', 'url', 'description', 'rating'];
+    requiredFields.forEach(field => {
+      const newBookmark = {
+        title: 'new bookmark!!',
+        url: 'http://www.google.com',
+        description: 'woohoo!',
+        rating: 3
+      };
+      it('responds with 400 and an error message when a field is missing', () => {
+        delete newBookmark[field];
+        return supertest(app)
+          .post('/bookmarks')
+          .send(newBookmark)
+          .expect(400, { error: { message: `${field} required` } });
+      });
+    });
+  });
