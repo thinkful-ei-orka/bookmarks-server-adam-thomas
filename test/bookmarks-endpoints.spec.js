@@ -111,11 +111,12 @@ describe('Bookmarks Endpoints', function () {
 
   describe('DELETE /bookmarks/:id', () => {
     const removeId = 2;
-    context('Given there are no articles in the database', () => {
+    context('Given there are no bookmarks in the database', () => {
       it("responds with 404 and bookmark doesn't exist", () => {
         return supertest(app)
           .delete(`/bookmarks/${removeId}`)
-          .expect(404, { error: { message: "Bookmark doesn't exist" } 
+          .expect(404, {
+            error: { message: "Bookmark doesn't exist" }
           });
       });
     });
@@ -131,7 +132,7 @@ describe('Bookmarks Endpoints', function () {
         return supertest(app)
           .delete(`/bookmarks/${removeId}`)
           .expect(204)
-          .then(res => 
+          .then(res =>
             supertest(app)
               .get('/bookmarks')
               .expect(expected)
@@ -140,59 +141,89 @@ describe('Bookmarks Endpoints', function () {
     });
   });
 
-  describe.only('PATCH /bookmarks/:id',()=>{
+  describe.only('PATCH /bookmarks/:id', () => {
     const editId = 2;
     const updateBookmark = {
-      title:'Updated',
-      url:'http://www.Updated.com',
-      description:'Updated',
-      rating:7
+      title: 'Updated',
+      url: 'http://www.Updated.com',
+      description: 'Updated',
+      rating: 3
     };
-    context('given there are no bookmarks in the database',()=>{
+
+    context('given there are no bookmarks in the database', () => {
       it("responds with 404 and bookmark doesn't exist", () => {
         return supertest(app)
           .patch(`/bookmarks/${editId}`)
           .send(updateBookmark)
-          .expect(404, { error: { message: "Bookmark doesn't exist"} 
+          .expect(404, {
+            error: { message: "Bookmark doesn't exist" }
           });
       });
     });
-    const fields = Object.keys(updateBookmark);
-    fields.forEach(field=>{
-      let original=(supertest(app)
-        .get('bookmarks/${editId}'))
-      console.log(original);
-    return supertest(app)
-      .patch(`/bookmarks/${editId}`)
-      .send({field:updateBookmark[field]})
-      .expect(204)
-      .then(res=>
-        supertest(app)
-          .get(`/bookmarks/${editId}`)
-          .then(bookmark=>
-            expect(bookmark).to.eql(edittedOriginal))  
-      )
-    })
-    context('given there are bookmarks in the database',()=>{
+    
+    context('given there are bookmarks in the database', () => {
       const testBookmarks = makeBookmarksArray();
       beforeEach('insert bookmarks', () => {
         return db
           .into('bookmarks')
           .insert(testBookmarks);
       });
-      it('responds with 204 and edits the bookmark in database',()=>{
+
+      it('responds with 204 and edits the bookmark in database', () => {
+        const expected = {
+          ...testBookmarks[editId - 1],
+          ...updateBookmark
+        };
         return supertest(app)
           .patch(`/bookmarks/${editId}`)
           .send(updateBookmark)
           .expect(204)
-          .then(res=>
+          .then(res =>
             supertest(app)
               .get(`/bookmarks/${editId}`)
-              .then(bookmark=>
-                
-              )
+              .expect(expected)
           );
       });
+
+      it('responds with 204 and edits parts of a bookmark appropriately',()=>{
+        updatePartial = {title:'Updated Partial'}
+        const expected = {
+          ...testBookmarks[editId - 1],
+          ...updatePartial
+        };
+        return supertest(app)
+          .patch(`/bookmarks/${editId}`)
+          .send(updatePartial)
+          .expect(204)
+          .then(res=>
+              supertest(app)
+                .get(`/bookmarks/${editId}`)
+                .expect(expected)
+            )
+      });
+
+      it('responds with 400 invalid rating if not between 0 and 5',()=>{
+        const updateRating={rating:'7'}
+        return supertest(app)
+          .patch(`/bookmarks/${editId}`)
+          .send(updateRating)
+          .expect(400,{error:{message:'rating must be a number between 1 and 5'}})
+      });
+
+      it(`responds with 400 invalid 'url' if not a valid URL`, () => {
+        const updateInvalidUrl = {
+          url: 'htp://invalid-url',
+        }
+        return supertest(app)
+          .patch(`/bookmarks/${editId}`)
+          .send(updateInvalidUrl)
+          .expect(400, {
+            error: {
+              message: `'url' must be a valid URL`
+            }
+          })
+      })
+
     });
   });
 });
@@ -240,3 +271,4 @@ describe('Bookmarks Endpoints', function () {
       });
     });
   });
+  */
